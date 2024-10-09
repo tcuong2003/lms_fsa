@@ -1,0 +1,146 @@
+{% extends 'base1.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row" style="height: 100vh;">
+        <!-- Sidebar -->
+        <nav class="col-md-3 d-none d-md-block sidebar" style="background-color: #000; height: 100vh; overflow-y: auto;">
+            <div class="sidebar-sticky">
+                <div class="d-flex justify-content-center align-items-center">
+                    <i class="fa-regular fa-circle mr-2 custom-circle" style="color: white;"></i>
+                    <h5 class="text-center mb-0" style="color: white;">{{ course_name }}</h5>
+                </div>
+
+                <!-- Dropdown for Excel file selection -->
+                <form method="GET" action=".">
+                    <div class="form-group">
+                        <label for="fileSelect" style="color: white;">Select a file:</label>
+                        <select class="form-control" id="fileSelect" name="selected_file" onchange="this.form.submit()">
+                            <option value="">-- Select Excel File --</option>
+                            {% for file in excel_files %}
+                                <option value="{{ file }}" {% if file == selected_file %}selected{% endif %}>{{ file|slice:":-5" }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                <ul class="nav flex-column">
+                    {% if split_sub_courses %}
+                        {% for sub_course in split_sub_courses %}
+                        <li class="nav-item">
+                            <h2 class="title_sub_course" style="color: white;">{{ sub_course.title }}</h2>
+                            <p class="description_sub_course" style="color: #ccc;">{{ sub_course.description }}</p>
+
+                            {% for module, sub_modules in sub_course.modules.items %}
+                            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#module{{ forloop.parentloop.counter }}-{{ forloop.counter }}" aria-expanded="false" aria-controls="module{{ forloop.parentloop.counter }}-{{ forloop.counter }}" style="color: #fff;">
+                                {{ module }}
+                            </a>
+                            <div class="collapse" id="module{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                <ul class="nav flex-column ml-3">
+                                    {% for sub_module_data in sub_modules %}
+                                    <li class="nav-item">
+                                        <a class="nav-link sub-module" href="#" data-sub-module="{{ sub_module_data.sub_module }}" style="color: #ddd;">
+                                            {{ sub_module_data.sub_module }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endfor %}
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #ccc;">Please select a file to view its content.</p>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-9 px-4" style="height: 100vh; overflow-y: auto;">
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="content_html_list" class="border p-2"></div>
+                </div>
+
+                <div class="col-md-12">
+                    <div id="img_list" class="border p-2"></div>
+                </div>
+
+                <div class="col-md-12">
+                    <div id="video_url" class="border p-2"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const subModuleLinks = document.querySelectorAll('.sub-module');
+
+        subModuleLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const subModuleName = this.getAttribute('data-sub-module');
+
+                fetchContent(subModuleName);
+            });
+        });
+
+        function fetchContent(subModuleName) {
+            const data = {{ split_sub_courses|safe }};
+
+            document.getElementById('content_html_list').innerHTML = '';
+            document.getElementById('img_list').innerHTML = '';
+            document.getElementById('video_url').innerHTML = '';
+
+            for (const sub_course of data) {
+                for (const [module, sub_modules] of Object.entries(sub_course.modules)) {
+                    for (const sub_module_data of sub_modules) {
+                        if (sub_module_data.sub_module === subModuleName) {
+                            const contentHtmlList = sub_module_data.content_html_list
+                                .replace(/^\[|\]$/g, '')
+                                .replace(/\\n/g, ' ')
+                                .replace(/'/g, '')
+                                .split(',');
+
+                            contentHtmlList.forEach(value => {
+                                value = value.trim();
+                                if (value) {
+                                    document.getElementById('content_html_list').innerHTML += value + '<br>';
+                                }
+                            });
+
+                            const imgList = sub_module_data.img_list
+                                .replace(/^\[|\]$/g, '')
+                                .replace(/'/g, '')
+                                .split(',');
+
+                            imgList.forEach(imgUrl => {
+                                imgUrl = imgUrl.trim();
+                                if (imgUrl) {
+                                    document.getElementById('img_list').innerHTML += `<img src="${imgUrl}" alt="Image" style="max-width: 100%; height: auto; margin-top: 10px;">`;
+                                }
+                            });
+
+                            const videoUrl = sub_module_data.video_url.replace(/'/g, '');
+
+                            if (videoUrl) {
+                                document.getElementById('video_url').innerHTML += `
+                                    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                                        <iframe src="${videoUrl}" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+                                    </div>`;
+                            }
+
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Export TXT to JSON</h2>
+
+    <!-- Form for specifying number of TXT files -->
+    <div class="row justify-content-center" id="file-number-form-container" {% if success_message %}style="display: none;"{% endif %}>
+        <div class="col-md-8">
+            <form id="file-number-form" class="border p-4 rounded shadow-sm bg-light">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.number_of_files.label_tag }}
+                    {{ form.number_of_files }}
+                </div>
+                <button type="button" id="generate-textareas" class="btn btn-primary mt-3">Generate</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Form for pasting TXT file contents, initially hidden -->
+    <div id="textareas-container" class="mt-4" style="display: none;"></div>
+
+    <!-- Submit form container, initially hidden -->
+    <div id="submit-form-container" class="mt-4" style="display: none;">
+        <form method="post" action="{% url 'tools:export_txt_to_json' %}" class="border p-4 rounded shadow-sm bg-light">
+            {% csrf_token %}
+            <input type="hidden" name="number_of_files" id="hidden-number-of-files" value="">
+            <div id="textareas-wrapper"></div>
+            <button type="submit" class="btn btn-success btn-block mt-4">Convert to JSON</button>
+        </form>
+    </div>
+
+    <!-- Display the success message and list of files if JSON files are generated -->
+    {% if success_message %}
+        <div class="mt-4">
+            <h3>Success!</h3>
+            <p>{{ success_message }}</p>
+            <p>Files created:</p>
+            <ul>
+                {% for file_name in file_names %}
+                    <li>{{ file_name }}</li>
+                {% endfor %}
+            </ul>
+            <a id="download-link" href="{{ download_url }}" class="btn btn-primary mt-2">Download All as ZIP</a>
+            <a href="{% url 'tools:export_txt_to_json' %}" class="btn btn-secondary mt-2">Refresh</a>
+        </div>
+
+        <!-- JavaScript to trigger download -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var downloadLink = document.getElementById('download-link');
+            if (downloadLink) {
+                downloadLink.click();
+            }
+        });
+        </script>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('generate-textareas').addEventListener('click', function() {
+    var numFiles = parseInt(document.querySelector('[name="number_of_files"]').value, 10);
+    var textareasContainer = document.getElementById('textareas-container');
+    var textareasWrapper = document.getElementById('textareas-wrapper');
+    var submitFormContainer = document.getElementById('submit-form-container');
+    var hiddenNumberOfFilesInput = document.getElementById('hidden-number-of-files');
+    var fileNumberFormContainer = document.getElementById('file-number-form-container');
+    
+    // Clear any existing textareas
+    textareasWrapper.innerHTML = '';
+
+    // Store number of files in hidden input
+    hiddenNumberOfFilesInput.value = numFiles;
+
+    // Create the text areas for each txt file
+    for (var i = 0; i < numFiles; i++) {
+        var textarea = document.createElement('textarea');
+        textarea.name = 'txt_file_' + i;
+        textarea.rows = 5;
+        textarea.className = 'form-control mb-2';
+        textarea.placeholder = 'Content for TXT file ' + (i + 1);
+        textareasWrapper.appendChild(textarea);
+    }
+
+    // Hide the initial form
+    fileNumberFormContainer.style.display = 'none';
+
+    // Show the textareas and the submit button
+    textareasContainer.style.display = 'block';
+    submitFormContainer.style.display = 'block';
+});
+
+// Set default number of files to 1
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('[name="number_of_files"]').value = 1;
+});
+</script>
+
+{% endblock %}

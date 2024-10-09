@@ -1,0 +1,27 @@
+TRUNCATE TABLE user_module_usermodule CASCADE;
+TRUNCATE TABLE module_group_module CASCADE;
+TRUNCATE TABLE module_group_modulegroup CASCADE;
+
+-- Insert data into module_group_modulegroup table
+INSERT INTO module_group_modulegroup (id, group_name) VALUES
+(1, 'Training Management'),
+(2, 'User Management'),
+(3, 'Assessment Management'),
+(4, 'Tools');
+(5, 'Sharing');
+
+-- Insert data into module_group_module table with icons and URL patterns
+INSERT INTO module_group_module (module_name, module_url, icon, module_group_id) VALUES
+('Subject', 'subject:subject_list', 'fas fa-book', 1),
+('Category', 'category:category_list', 'fas fa-tags', 1),
+('Training Program', 'training_program:training_program_list', 'fas fa-calendar-alt', 1),
+('User', 'user:user_list', 'fas fa-user', 2),
+('Role', 'role:role_list', 'fas fa-briefcase', 2),
+('Module', 'module_group:module_list', 'fas fa-cogs', 2),
+('Module Group', 'module_group:module_group_list', 'fas fa-folder', 2),
+('User Module', 'user_module:user_module_list', 'fas fa-user-tag', 2),
+('Question', 'question:question_list', 'fas fa-question', 3),
+('Generate Exams', 'tools:exam_generator_view', 'fas fa-file-alt', 4),
+('Excel to JSON', 'tools:export_excel_to_json', 'fas fa-file-excel', 4),
+('TXT to JSON', 'tools:export_txt_to_json', 'fas fa-file-code', 4);
+('Courses', 'home:get_home', 'fas fa-book', 5);

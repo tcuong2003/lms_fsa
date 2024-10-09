@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %} 
+{% block title %}Subject List{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Subject</h2>
+
+    <a href="{% url 'subject:subject_add' %}" class="btn btn-primary mt-3">
+        <i class="fas fa-plus"></i> Add Subject
+    </a>    
+    <button class="btn btn-success mt-3" title="Import subject from Excel" data-toggle="modal" data-target="#importModal" data-toggle="tooltip">
+        <i class="fas fa-file-import"></i> Import
+      </button>
+      <a href="{% url 'subject:export_subjects' %}" class="btn btn-secondary mt-3" title="Export subject to Excel" data-toggle="tooltip">
+        <i class="fas fa-file-export"></i> Export
+      </a>
+    <a href="{% url 'subject:upload_material' %}" class="btn btn-warning mt-3">
+        <i class="fas fa-upload"></i> Upload Materials
+    </a>
+{% comment %} <a href="{% url 'subject:subject_materials' subject.id %}" class="btn btn-danger mt-3">
+      <i class="fas fa-show"></i> Show Materials
+</a>  {% endcomment %}
+
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                {% comment %} <th>Subject Code</th> <!-- Added code column -->
+                <th>Subject Name</th>
+                <th>Description</th>
+                <th>Actions</th> {% endcomment %}
+
+                <th style="width: 5%;">#</th>
+                <th style="width: 15%;">Code</th>
+                <th style="width: 35%;">Name</th>
+                <th style="width: 30%;">Description</th>
+                <th style="width: 20%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subject in subjects %}
+            <tr>
+                <td style="width: 5%;">{{ forloop.counter }}</td>
+                <td style="width: 15%;">{{ subject.code }}</td> <!-- Display subject code -->
+                <td style="width: 35%;">{{ subject.name }}</td>
+                <td style="width: 30%;">{{ subject.description }}</td>
+                <td style="width: 15%;">
+                    <a href="{% url 'subject:subject_edit' subject.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></i></a>
+                    <a href="{% url 'subject:subject_delete' subject.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></a>
+                    <a href="{% url 'subject:subject_materials' subject.pk %}" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                    
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="importModalLabel">Import Subjects from Excel</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Import Form -->
+          <form method="post" enctype="multipart/form-data" action="{% url 'subject:import_subjects' %}">
+            <div class="mb-4">
+              <span>
+                Please download and use the <a href="{% static 'excel/import_subjects.xlsx' %}" target="_blank">Excel template</a>. The Excel file must contain exactly one sheet with the required columns.
+              </span>
+            </div>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary">Upload</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Initialize Bootstrap Tooltips -->
+  <script>
+    $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+  </script>
+{% endblock %}
